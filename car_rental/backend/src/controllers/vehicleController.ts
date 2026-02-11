@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { pool } from '../config/db';
+import { pool } from '../config/db.js';
 
 export const createVehicle = async (req: Request, res: Response) => {
     const { owner_id, make, model, year, license_plate, price_per_day, location, description, list_availability } = req.body;

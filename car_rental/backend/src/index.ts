@@ -1,9 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { pool } from './config/db';
-import authRoutes from './routes/authRoutes';
-import vehicleRoutes from './routes/vehicleRoutes';
+import { pool } from './config/db.js';
+import authRoutes from './routes/authRoutes.js';
+import vehicleRoutes from './routes/vehicleRoutes.js';
 
 dotenv.config();
 

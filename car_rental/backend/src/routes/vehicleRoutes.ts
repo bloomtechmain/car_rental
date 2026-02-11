@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { createVehicle, getVehicles, getVehiclesByOwner } from '../controllers/vehicleController';
-import { upload } from '../middleware/upload';
+import { createVehicle, getVehicles, getVehiclesByOwner } from '../controllers/vehicleController.js';
+import { upload } from '../middleware/upload.js';
 
 const router = Router();
 
