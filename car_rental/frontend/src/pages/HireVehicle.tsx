@@ -46,7 +46,7 @@ const HireVehicle = () => {
       if (!userStr) return;
       const user = JSON.parse(userStr);
       
-      const response = await fetch(`http://localhost:3000/api/vehicles/my-vehicles/${user.id}`);
+      const response = await fetch(`${API_URL}/api/vehicles/my-vehicles/${user.id}`);
       if (response.ok) {
         const data = await response.json();
         setMyVehicles(data);
