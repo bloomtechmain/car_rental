@@ -26,18 +26,21 @@ const Login = () => {
           body: JSON.stringify({ email, name, picture, sub }),
         });
 
-        const data = await res.json();
-        if (res.ok) {
-          console.log('Login successful, navigating...');
-          localStorage.setItem('token', credentialResponse.credential);
-          localStorage.setItem('user', JSON.stringify(data));
-          localStorage.setItem('isAuthenticated', 'true');
-          setShowLoginModal(false); // Close modal
-          navigate('/dashboard');
-        } else {
-          console.error('Login failed:', data.message || data.error);
-          alert(`Login failed: ${data.message || data.error || 'Unknown error'}`);
+        if (!res.ok) {
+           const errorText = await res.text();
+           console.error('Login failed with status:', res.status, errorText);
+           throw new Error(`Server responded with ${res.status}: ${errorText}`);
         }
+
+        const data = await res.json();
+        
+        console.log('Login successful, navigating...');
+        localStorage.setItem('token', credentialResponse.credential);
+        localStorage.setItem('user', JSON.stringify(data));
+        localStorage.setItem('isAuthenticated', 'true');
+        setShowLoginModal(false); // Close modal
+        navigate('/dashboard');
+
       } catch (error: any) {
         console.error('Error logging in:', error);
         alert(`Network or System Error: ${error.message}`);
