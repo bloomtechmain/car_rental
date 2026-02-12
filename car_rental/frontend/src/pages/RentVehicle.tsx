@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { FaSearch, FaMapMarkerAlt, FaCar, FaCalendarAlt, FaStar } from 'react-icons/fa';
 import AuthenticatedLayout from '../components/AuthenticatedLayout';
+import BookingModal from '../components/BookingModal';
 import '../rent-styles.css';
+import API_URL from '../api';
 
 interface Vehicle {
   id: number;
@@ -31,14 +33,13 @@ const AvailabilityDisplay = ({ datesStr }: { datesStr?: string }) => {
   );
 };
 
-import API_URL from '../api';
-
 const RentVehicle = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMake, setSelectedMake] = useState('All');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
 
   useEffect(() => {
     fetchVehicles();
@@ -129,7 +130,7 @@ const RentVehicle = () => {
                 <div key={vehicle.id} className="rent-card">
                   <div className="card-image-wrapper">
                     <img 
-                      src={vehicle.image_url ? `http://localhost:3000${vehicle.image_url}` : '/car-placeholder.png'} 
+                      src={vehicle.image_url ? `${API_URL}${vehicle.image_url}` : '/car-placeholder.png'} 
                       alt={`${vehicle.make} ${vehicle.model}`} 
                       className="card-image"
                       onError={(e) => {
@@ -161,7 +162,10 @@ const RentVehicle = () => {
                         <span className="price-amount">${vehicle.price_per_day}</span>
                         <span className="price-period">/day</span>
                       </div>
-                      <button className="rent-now-btn">
+                      <button 
+                        className="rent-now-btn"
+                        onClick={() => setSelectedVehicle(vehicle)}
+                      >
                         Rent Now
                       </button>
                     </div>
@@ -178,6 +182,17 @@ const RentVehicle = () => {
           )}
         </div>
       </div>
+      
+      {selectedVehicle && (
+        <BookingModal 
+          vehicle={selectedVehicle}
+          onClose={() => setSelectedVehicle(null)}
+          onSuccess={() => {
+             // Optionally refresh vehicles or show a success toast
+             console.log('Booking successful');
+          }}
+        />
+      )}
     </AuthenticatedLayout>
   );
 };
