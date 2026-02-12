@@ -6,6 +6,8 @@ import { carData } from '../data/carData';
 import '../App.css'; 
 import '../form-styles.css';
 
+import API_URL from '../api';
+
 const HireVehicle = () => {
   console.log('HireVehicle component mounted');
   const navigate = useNavigate();
@@ -151,7 +153,7 @@ const HireVehicle = () => {
         data.append('image', imageFile);
       }
 
-      const response = await fetch('http://localhost:3000/api/vehicles', {
+      const response = await fetch(`${API_URL}/api/vehicles`, {
         method: 'POST',
         body: data, // FormData handles headers automatically
       });

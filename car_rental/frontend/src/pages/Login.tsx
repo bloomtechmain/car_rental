@@ -4,6 +4,8 @@ import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
 import { FaCarSide, FaCheck, FaShieldAlt, FaBolt, FaStar, FaTimes } from 'react-icons/fa';
 
+import API_URL from '../api';
+
 const Login = () => {
   const navigate = useNavigate();
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -16,7 +18,7 @@ const Login = () => {
         const { email, name, picture, sub } = decoded;
 
         console.log('Sending login request to backend...');
-        const res = await fetch('http://localhost:3000/api/auth/google', {
+        const res = await fetch(`${API_URL}/api/auth/google`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

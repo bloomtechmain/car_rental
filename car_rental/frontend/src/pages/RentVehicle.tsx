@@ -31,6 +31,8 @@ const AvailabilityDisplay = ({ datesStr }: { datesStr?: string }) => {
   );
 };
 
+import API_URL from '../api';
+
 const RentVehicle = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,7 +46,7 @@ const RentVehicle = () => {
 
   const fetchVehicles = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/vehicles');
+      const response = await fetch(`${API_URL}/api/vehicles`);
       if (response.ok) {
         const data = await response.json();
         setVehicles(data);
