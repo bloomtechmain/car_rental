@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import HireVehicle from './pages/HireVehicle';
 import RentVehicle from './pages/RentVehicle';
 import HireOuts from './pages/HireOuts';
+import Chat from './pages/Chat';
 
 // Simple Protected Route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -48,6 +49,14 @@ function App() {
           element={
             <ProtectedRoute>
               <HireOuts />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/chat" 
+          element={
+            <ProtectedRoute>
+              <Chat />
             </ProtectedRoute>
           } 
         />

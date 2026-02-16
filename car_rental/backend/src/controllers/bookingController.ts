@@ -2,16 +2,25 @@ import type { Request, Response } from 'express';
 import { pool } from '../config/db.js';
 
 export const createBooking = async (req: Request, res: Response) => {
-    const { vehicle_id, renter_id, start_date, end_date, total_price } = req.body;
+    const { vehicle_id, renter_id, booking_dates, total_price } = req.body;
 
     console.log('Received booking request:', req.body);
 
-    if (!vehicle_id || !renter_id || !start_date || !end_date || !total_price) {
+    if (!vehicle_id || !renter_id || !booking_dates || !total_price) {
         return res.status(400).json({ error: 'Missing required fields' });
     }
 
     try {
+        // Parse dates and sort them
+        const datesArray = Array.isArray(booking_dates) ? booking_dates : booking_dates.split(',').map((d: string) => d.trim());
+        const sortedDates = datesArray.sort();
+        const start_date = sortedDates[0];
+        const end_date = sortedDates[sortedDates.length - 1];
+        const datesString = datesArray.join(',');
+
         // Check for availability conflicts
+        // This checks if any existing booking overlaps with the new range. 
+        // Ideally we should check specific dates if we want non-contiguous bookings support.
         const conflictCheck = await pool.query(
             `SELECT * FROM bookings 
              WHERE vehicle_id = $1 
@@ -25,14 +34,16 @@ export const createBooking = async (req: Request, res: Response) => {
         );
 
         if (conflictCheck.rows.length > 0) {
+            // Further refinement: Check if actual dates overlap if booking_dates column is populated
+            // For now, simple range overlap is safer
             return res.status(409).json({ error: 'Vehicle is not available for these dates' });
         }
 
         const newBooking = await pool.query(
-            `INSERT INTO bookings (vehicle_id, renter_id, start_date, end_date, total_price, status)
-             VALUES ($1, $2, $3, $4, $5, 'pending')
+            `INSERT INTO bookings (vehicle_id, renter_id, start_date, end_date, total_price, status, booking_dates)
+             VALUES ($1, $2, $3, $4, $5, 'pending', $6)
              RETURNING *`,
-            [vehicle_id, renter_id, start_date, end_date, total_price]
+            [vehicle_id, renter_id, start_date, end_date, total_price, datesString]
         );
 
         console.log('Booking created:', newBooking.rows[0]);

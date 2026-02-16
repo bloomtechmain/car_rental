@@ -1,12 +1,102 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AuthenticatedLayout from '../components/AuthenticatedLayout';
-import { FaCar, FaMoneyBillWave, FaMapMarkerAlt, FaInfoCircle, FaCalendarAlt, FaIdCard, FaCloudUploadAlt, FaKey, FaTrash } from 'react-icons/fa';
+import { FaCar, FaMoneyBillWave, FaMapMarkerAlt, FaInfoCircle, FaCalendarAlt, FaIdCard, FaCloudUploadAlt, FaKey, FaTrash, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { carData } from '../data/carData';
 import '../App.css'; 
 import '../form-styles.css';
 
 import API_URL from '../api';
+
+const MultiDateCalendar = ({ selectedDates, onChange }: { selectedDates: string[], onChange: (dates: string[]) => void }) => {
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  const getDaysInMonth = (year: number, month: number) => {
+    return new Date(year, month + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (year: number, month: number) => {
+    return new Date(year, month, 1).getDay();
+  };
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const daysInMonth = getDaysInMonth(year, month);
+  const firstDay = getFirstDayOfMonth(year, month);
+  
+  const monthNames = ["January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+  const handlePrevMonth = () => {
+    setCurrentDate(new Date(year, month - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentDate(new Date(year, month + 1, 1));
+  };
+
+  const toggleDate = (day: number) => {
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    
+    if (selectedDates.includes(dateStr)) {
+      onChange(selectedDates.filter(d => d !== dateStr));
+    } else {
+      onChange([...selectedDates, dateStr].sort());
+    }
+  };
+
+  const isSelected = (day: number) => {
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    return selectedDates.includes(dateStr);
+  };
+  
+  const isToday = (day: number) => {
+      const today = new Date();
+      return day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+  };
+  
+  const isPast = (day: number) => {
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const date = new Date(year, month, day);
+      return date < today;
+  };
+
+  const days = [];
+  for (let i = 0; i < firstDay; i++) {
+    days.push(<div key={`empty-${i}`} className="calendar-day empty"></div>);
+  }
+  
+  for (let day = 1; day <= daysInMonth; day++) {
+      const _isPast = isPast(day);
+      days.push(
+          <div 
+            key={day} 
+            className={`calendar-day ${isSelected(day) ? 'selected' : ''} ${isToday(day) ? 'today' : ''} ${_isPast ? 'disabled' : ''}`}
+            onClick={() => !_isPast && toggleDate(day)}
+          >
+              {day}
+          </div>
+      );
+  }
+
+  return (
+    <div className="custom-calendar">
+      <div className="calendar-header">
+        <button type="button" onClick={handlePrevMonth} className="calendar-nav-btn"><FaChevronLeft /></button>
+        <span style={{ fontWeight: 600 }}>{monthNames[month]} {year}</span>
+        <button type="button" onClick={handleNextMonth} className="calendar-nav-btn"><FaChevronRight /></button>
+      </div>
+      <div className="calendar-grid">
+        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+            <div key={d} className="calendar-day-header">{d}</div>
+        ))}
+        {days}
+      </div>
+    </div>
+  );
+};
 
 const HireVehicle = () => {
   console.log('HireVehicle component mounted');
@@ -34,7 +124,6 @@ const HireVehicle = () => {
   const [loading, setLoading] = useState(false);
   const [myVehicles, setMyVehicles] = useState<any[]>([]);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
-  const [dateInput, setDateInput] = useState('');
 
   useEffect(() => {
     fetchMyVehicles();
@@ -109,13 +198,6 @@ const HireVehicle = () => {
       const file = e.target.files[0];
       setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
-    }
-  };
-
-  const handleAddDate = () => {
-    if (dateInput && !selectedDates.includes(dateInput)) {
-      setSelectedDates([...selectedDates, dateInput].sort());
-      setDateInput('');
     }
   };
 
@@ -369,27 +451,14 @@ const HireVehicle = () => {
                         <div className="form-group span-2 availability-group">
                             <label className="static-label"><FaCalendarAlt /> List Availability</label>
                             <div className="date-picker-container">
-                                <div className="date-input-group">
-                                    <input 
-                                        type="date" 
-                                        value={dateInput}
-                                        onChange={(e) => setDateInput(e.target.value)}
-                                        className="date-input"
-                                        min={new Date().toISOString().split('T')[0]}
-                                    />
-                                    <button 
-                                        type="button" 
-                                        onClick={handleAddDate}
-                                        className="add-date-btn"
-                                        disabled={!dateInput}
-                                    >
-                                        Add Date
-                                    </button>
-                                </div>
+                                <MultiDateCalendar 
+                                    selectedDates={selectedDates}
+                                    onChange={setSelectedDates}
+                                />
                                 
                                 {selectedDates.length > 0 && (
                                     <div className="selected-dates-list">
-                                        <p className="dates-label">Selected Dates:</p>
+                                        <p className="dates-label">Selected Dates ({selectedDates.length}):</p>
                                         <div className="dates-chips">
                                             {selectedDates.map(date => (
                                                 <div key={date} className="date-chip">

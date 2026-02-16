@@ -1,0 +1,135 @@
+.chat-layout {
+  display: flex;
+  height: calc(100vh - 80px); /* Adjust based on your layout's header/footer height */
+  background-color: #1a1a1a;
+  color: #fff;
+}
+
+.user-list-panel {
+  width: 300px;
+  border-right: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-header {
+  padding: 20px;
+  font-size: 1.2rem;
+  border-bottom: 1px solid #333;
+}
+
+.user-list-item {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.user-list-item:hover {
+  background-color: #2a2a2a;
+}
+
+.user-list-item.active {
+  background-color: #007bff;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 15px;
+}
+
+.username {
+  font-weight: 500;
+}
+
+.chat-main-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-header {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #333;
+}
+
+.chat-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.message-area {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.message-bubble {
+  max-width: 70%;
+  padding: 10px 15px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.message-bubble.sent {
+  background-color: #007bff;
+  color: #fff;
+  align-self: flex-end;
+  margin-left: auto;
+}
+
+.message-bubble.received {
+  background-color: #333;
+  align-self: flex-start;
+}
+
+.message-bubble p {
+  margin: 0;
+}
+
+.timestamp {
+  font-size: 0.75rem;
+  color: #aaa;
+  margin-top: 5px;
+  align-self: flex-end;
+}
+
+.message-input-form {
+  display: flex;
+  padding: 20px;
+  border-top: 1px solid #333;
+}
+
+.message-input-form input {
+  flex: 1;
+  padding: 10px 15px;
+  border: 1px solid #444;
+  border-radius: 20px;
+  background-color: #2a2a2a;
+  color: #fff;
+  margin-right: 10px;
+}
+
+.message-input-form button {
+  padding: 10px 20px;
+  border: none;
+  background-color: #007bff;
+  color: #fff;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.placeholder-view {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #777;
+}

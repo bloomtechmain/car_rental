@@ -9,7 +9,8 @@ import {
   FaSignOutAlt,
   FaCarSide,
   FaBars,
-  FaTimes
+  FaTimes,
+  FaComments
 } from 'react-icons/fa';
 
 interface AuthenticatedLayoutProps {
@@ -42,6 +43,7 @@ const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({ children }) =
     { icon: <FaKey />, label: 'Hire Out Vehicle', path: '/hire-vehicle' },
     { icon: <FaHistory />, label: 'My Rides', path: '/my-rides' },
     { icon: <FaClipboardList />, label: 'Hire Outs', path: '/hire-outs' },
+    { icon: <FaComments />, label: 'Chat', path: '/chat' },
   ];
 
   return (

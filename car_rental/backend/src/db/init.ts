@@ -61,6 +61,16 @@ export const initDB = async () => {
             );
         `);
 
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS messages (
+                id SERIAL PRIMARY KEY,
+                room VARCHAR(255) NOT NULL,
+                sender_id UUID REFERENCES users(id),
+                content TEXT NOT NULL,
+                timestamp TIMESTAMPTZ DEFAULT NOW()
+            );
+        `);
+
         console.log('Database tables initialized successfully');
     } catch (error) {
         console.error('Error initializing database:', error);

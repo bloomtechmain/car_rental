@@ -144,6 +144,7 @@ const Login = () => {
                 theme="filled_black"
                 shape="pill"
                 size="large"
+                text="continue_with"
                 width="300"
                 logo_alignment="center"
               />

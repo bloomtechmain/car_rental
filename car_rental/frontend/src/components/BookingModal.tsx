@@ -9,24 +9,37 @@ interface BookingModalProps {
 }
 
 const BookingModal = ({ vehicle, onClose, onSuccess }: BookingModalProps) => {
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Parse available dates from vehicle data
+  const availableDates = vehicle.list_availability 
+    ? vehicle.list_availability.split(',').map((d: string) => d.trim()) 
+    : [];
+
+  const toggleDate = (date: string) => {
+    if (selectedDates.includes(date)) {
+      setSelectedDates(selectedDates.filter(d => d !== date));
+    } else {
+      setSelectedDates([...selectedDates, date]);
+    }
+  };
+
   const calculateTotal = () => {
-    if (!startDate || !endDate) return 0;
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return (diffDays + 1) * parseFloat(vehicle.price_per_day); // +1 to include start date
+    return selectedDates.length * parseFloat(vehicle.price_per_day);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    if (selectedDates.length === 0) {
+        setError('Please select at least one date');
+        setLoading(false);
+        return;
+    }
 
     try {
       const userStr = localStorage.getItem('user');
@@ -43,8 +56,7 @@ const BookingModal = ({ vehicle, onClose, onSuccess }: BookingModalProps) => {
         body: JSON.stringify({
           vehicle_id: vehicle.id,
           renter_id: user.id,
-          start_date: startDate,
-          end_date: endDate,
+          booking_dates: selectedDates,
           total_price: calculateTotal(),
         }),
       });
@@ -86,31 +98,35 @@ const BookingModal = ({ vehicle, onClose, onSuccess }: BookingModalProps) => {
 
         <form onSubmit={handleSubmit} className="booking-form">
           <div className="form-group">
-            <label>Start Date</label>
-            <div className="input-with-icon">
-              <FaCalendarAlt className="input-icon" />
-              <input
-                type="date"
-                required
-                value={startDate}
-                min={new Date().toISOString().split('T')[0]}
-                onChange={(e) => setStartDate(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label>End Date</label>
-            <div className="input-with-icon">
-              <FaCalendarAlt className="input-icon" />
-              <input
-                type="date"
-                required
-                value={endDate}
-                min={startDate || new Date().toISOString().split('T')[0]}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
-            </div>
+            <label>Select Dates</label>
+            {availableDates.length > 0 ? (
+                <div className="dates-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '0.5rem', maxHeight: '200px', overflowY: 'auto', padding: '0.5rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
+                    {availableDates.map(date => (
+                        <button
+                            key={date}
+                            type="button"
+                            onClick={() => toggleDate(date)}
+                            className={`date-chip ${selectedDates.includes(date) ? 'selected' : ''}`}
+                            style={{
+                                padding: '0.5rem',
+                                border: '1px solid var(--glass-border)',
+                                borderRadius: '4px',
+                                background: selectedDates.includes(date) ? 'var(--primary-yellow)' : 'transparent',
+                                color: selectedDates.includes(date) ? 'var(--primary-black)' : 'var(--text-white)',
+                                cursor: 'pointer',
+                                fontSize: '0.9rem',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            {date}
+                        </button>
+                    ))}
+                </div>
+            ) : (
+                <div style={{ color: 'var(--text-gray)', fontStyle: 'italic' }}>
+                    No specific dates listed by owner. Please contact owner directly.
+                </div>
+            )}
           </div>
 
           <div className="total-price-display">
@@ -122,7 +138,7 @@ const BookingModal = ({ vehicle, onClose, onSuccess }: BookingModalProps) => {
 
           {error && <div className="error-message">{error}</div>}
 
-          <button type="submit" className="submit-btn" disabled={loading}>
+          <button type="submit" className="submit-btn" disabled={loading || selectedDates.length === 0}>
             {loading ? 'Processing...' : 'Confirm Booking'}
           </button>
         </form>

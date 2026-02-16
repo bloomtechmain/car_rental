@@ -21,15 +21,24 @@ interface Vehicle {
 const AvailabilityDisplay = ({ datesStr }: { datesStr?: string }) => {
   if (!datesStr) return <span><FaCalendarAlt /> Available</span>;
   
-  const dates = datesStr.split(', ');
-  if (dates.length <= 2) {
-      return <span><FaCalendarAlt /> {datesStr}</span>;
-  }
-  
   return (
-    <span title={datesStr} style={{ cursor: 'help' }}>
-        <FaCalendarAlt /> {dates.length} dates available
-    </span>
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.4rem' }}>
+        <FaCalendarAlt style={{ marginTop: '4px', flexShrink: 0 }} /> 
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+            {datesStr.split(',').map((date, index) => (
+                <span key={index} style={{ 
+                    fontSize: '0.75rem', 
+                    background: 'rgba(255,255,255,0.1)', 
+                    padding: '2px 6px', 
+                    borderRadius: '4px',
+                    whiteSpace: 'nowrap',
+                    color: 'var(--text-gray)'
+                }}>
+                    {date.trim()}
+                </span>
+            ))}
+        </div>
+    </div>
   );
 };
 
@@ -38,7 +47,7 @@ const RentVehicle = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMake, setSelectedMake] = useState('All');
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 5000]);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
 
   useEffect(() => {
@@ -51,6 +60,11 @@ const RentVehicle = () => {
       if (response.ok) {
         const data = await response.json();
         setVehicles(data);
+        // Set initial price range max to the highest vehicle price found
+        if (data.length > 0) {
+            const maxPrice = Math.max(...data.map((v: Vehicle) => Number(v.price_per_day) || 0));
+            setPriceRange([0, maxPrice]);
+        }
       }
     } catch (error) {
       console.error('Error fetching vehicles:', error);
@@ -58,6 +72,10 @@ const RentVehicle = () => {
       setLoading(false);
     }
   };
+
+  const maxPriceAvailable = vehicles.length > 0 
+    ? Math.max(...vehicles.map(v => Number(v.price_per_day) || 0)) 
+    : 1000;
 
   const filteredVehicles = vehicles.filter(vehicle => {
     const matchesSearch = 
@@ -111,7 +129,7 @@ const RentVehicle = () => {
                  <input 
                    type="range" 
                    min="0" 
-                   max={Math.max(50000, ...vehicles.map(v => Number(v.price_per_day) || 0))} 
+                   max={maxPriceAvailable} 
                    value={priceRange[1]} 
                    onChange={(e) => setPriceRange([0, parseInt(e.target.value)])}
                  />
