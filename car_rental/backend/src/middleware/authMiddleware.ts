@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import { OAuth2Client } from 'google-auth-library';
 import { pool } from '../config/db.js';
 
 declare global {
@@ -10,6 +10,8 @@ declare global {
     }
 }
 
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
 export const authenticateToken = async (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
@@ -18,21 +20,19 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
         return res.sendStatus(401); // No token provided
     }
 
-    const secret = process.env.GOOGLE_CLIENT_ID;
-    if (!secret) {
-        console.error('JWT Secret is not defined. Make sure GOOGLE_CLIENT_ID is in your .env file');
-        return res.sendStatus(500); // Internal Server Error
-    }
-
     try {
-        // Verify the token synchronously within the try block
-        const decoded: any = jwt.verify(token, secret);
+        const ticket = await client.verifyIdToken({
+            idToken: token,
+            audience: process.env.GOOGLE_CLIENT_ID,
+            clockTolerance: 30, // Allow a 30-second clock skew
+        });
 
-        if (!decoded || !decoded.email) {
+        const payload = ticket.getPayload();
+        if (!payload || !payload.email) {
             return res.sendStatus(401); // Invalid token payload
         }
 
-        const userResult = await pool.query('SELECT * FROM users WHERE email = $1', [decoded.email]);
+        const userResult = await pool.query('SELECT * FROM users WHERE email = $1', [payload.email]);
 
         if (userResult.rows.length === 0) {
             return res.sendStatus(403); // User not found in our system
@@ -41,8 +41,7 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
         req.user = userResult.rows[0]; // Attach the full DB user record
         next(); // Proceed to the next middleware/route handler
     } catch (err) {
-        // This block will now correctly catch errors from jwt.verify and the database query
         console.error('Authentication error:', err);
-        return res.sendStatus(403); // Handles invalid signature, expiration, etc.
+        return res.sendStatus(403); // Handles invalid token
     }
 };

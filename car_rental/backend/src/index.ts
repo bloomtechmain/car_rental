@@ -1,25 +1,25 @@
 import express from 'express';
 import cors from 'cors';
+import dotenv from 'dotenv';
+import http from 'http';
+import { Server } from 'socket.io';
 import { pool } from './config/db.js';
 import { initDB } from './db/init.js';
 import authRoutes from './routes/authRoutes.js';
-import http from 'http';
-import { Server } from 'socket.io';
-import { initializeChat } from './controllers/chatController.js';
 import vehicleRoutes from './routes/vehicleRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
+import { initializeChat } from './controllers/chatController.js';
 
-
+dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  path: "/my-custom-chat-path",
-  cors: {
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST"]
-  }
+    cors: { 
+        origin: "*", // Be more specific in production
+        methods: ["GET", "POST"]
+    }
 });
 
 const port = process.env.PORT || 3000;
@@ -32,6 +32,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/chat', chatRoutes);
+
+initializeChat(io);
 
 app.get('/', (req, res) => {
     res.send('Car Rental API is running');
@@ -48,11 +50,9 @@ app.get('/db-test', async (req, res) => {
     }
 });
 
-initializeChat(io);
-
 // Initialize DB and start server
 initDB().then(() => {
-    app.listen(port, () => {
+    server.listen(port, () => {
         console.log(`Server is running on port ${port}`);
     });
 });

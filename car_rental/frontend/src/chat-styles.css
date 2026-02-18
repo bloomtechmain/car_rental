@@ -1,135 +1,135 @@
-.chat-layout {
-  display: flex;
-  height: calc(100vh - 80px); /* Adjust based on your layout's header/footer height */
-  background-color: #1a1a1a;
-  color: #fff;
+.chat-container {
+    display: flex;
+    height: calc(100vh - 80px); /* Adjust based on your layout */
+    background-color: #f4f7fa;
 }
 
-.user-list-panel {
-  width: 300px;
-  border-right: 1px solid #333;
-  display: flex;
-  flex-direction: column;
+.chat-sidebar {
+    width: 300px;
+    border-right: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
 }
 
-.panel-header {
-  padding: 20px;
-  font-size: 1.2rem;
-  border-bottom: 1px solid #333;
+.chat-sidebar h2 {
+    padding: 20px;
+    margin: 0;
+    font-size: 1.5rem;
+    border-bottom: 1px solid #e0e0e0;
 }
 
-.user-list-item {
-  display: flex;
-  align-items: center;
-  padding: 15px 20px;
-  cursor: pointer;
-  transition: background-color 0.2s;
+.chat-user {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    cursor: pointer;
+    border-bottom: 1px solid #e0e0e0;
+    transition: background-color 0.2s;
 }
 
-.user-list-item:hover {
-  background-color: #2a2a2a;
+.chat-user:hover {
+    background-color: #e9eff5;
 }
 
-.user-list-item.active {
-  background-color: #007bff;
+.chat-user.selected {
+    background-color: #d1e0ed;
 }
 
-.avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  margin-right: 15px;
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 15px;
 }
 
-.username {
-  font-weight: 500;
-}
-
-.chat-main-panel {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+.chat-main {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .chat-header {
-  display: flex;
-  align-items: center;
-  padding: 20px;
-  border-bottom: 1px solid #333;
+    padding: 20px;
+    border-bottom: 1px solid #e0e0e0;
+    background-color: #fff;
 }
 
 .chat-header h3 {
-  margin: 0;
-  font-size: 1.1rem;
+    margin: 0;
+    font-size: 1.2rem;
 }
 
-.message-area {
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
+.chat-messages {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
-.message-bubble {
-  max-width: 70%;
-  padding: 10px 15px;
-  border-radius: 20px;
-  margin-bottom: 10px;
-  display: flex;
-  flex-direction: column;
+.message {
+    max-width: 60%;
+    padding: 10px 15px;
+    border-radius: 18px;
+    line-height: 1.4;
 }
 
-.message-bubble.sent {
-  background-color: #007bff;
-  color: #fff;
-  align-self: flex-end;
-  margin-left: auto;
+.message p {
+    margin: 0;
 }
 
-.message-bubble.received {
-  background-color: #333;
-  align-self: flex-start;
+.message span {
+    font-size: 0.75rem;
+    color: #888;
+    display: block;
+    text-align: right;
+    margin-top: 5px;
 }
 
-.message-bubble p {
-  margin: 0;
+.message.sent {
+    background-color: #007bff;
+    color: white;
+    align-self: flex-end;
 }
 
-.timestamp {
-  font-size: 0.75rem;
-  color: #aaa;
-  margin-top: 5px;
-  align-self: flex-end;
+.message.received {
+    background-color: #e9e9eb;
+    color: #333;
+    align-self: flex-start;
 }
 
-.message-input-form {
-  display: flex;
-  padding: 20px;
-  border-top: 1px solid #333;
+.chat-form {
+    display: flex;
+    padding: 20px;
+    border-top: 1px solid #e0e0e0;
+    background-color: #fff;
 }
 
-.message-input-form input {
-  flex: 1;
-  padding: 10px 15px;
-  border: 1px solid #444;
-  border-radius: 20px;
-  background-color: #2a2a2a;
-  color: #fff;
-  margin-right: 10px;
+.chat-form input {
+    flex-grow: 1;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    padding: 10px 15px;
+    font-size: 1rem;
 }
 
-.message-input-form button {
-  padding: 10px 20px;
-  border: none;
-  background-color: #007bff;
-  color: #fff;
-  border-radius: 20px;
-  cursor: pointer;
+.chat-form button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 20px;
+    margin-left: 10px;
+    cursor: pointer;
+    font-size: 1rem;
 }
 
-.placeholder-view {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: #777;
+.no-chat-selected {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: #888;
+    font-size: 1.2rem;
 }

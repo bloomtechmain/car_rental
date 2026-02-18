@@ -2,6 +2,20 @@ import { pool } from '../config/db.js';
 
 export const initDB = async () => {
     try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS messages (
+                id SERIAL PRIMARY KEY,
+                room_name VARCHAR(255) NOT NULL,
+                sender_id UUID REFERENCES users(id),
+                content TEXT NOT NULL,
+                timestamp TIMESTAMPTZ DEFAULT NOW()
+            );
+        `);
+
+        await pool.query(`
+            ALTER TABLE messages ADD COLUMN IF NOT EXISTS room_name VARCHAR(255) NOT NULL;
+        `);
+
         // Create users table if not exists (defaulting to SERIAL if created now)
         await pool.query(`
             CREATE TABLE IF NOT EXISTS users (
@@ -61,15 +75,7 @@ export const initDB = async () => {
             );
         `);
 
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS messages (
-                id SERIAL PRIMARY KEY,
-                room VARCHAR(255) NOT NULL,
-                sender_id UUID REFERENCES users(id),
-                content TEXT NOT NULL,
-                timestamp TIMESTAMPTZ DEFAULT NOW()
-            );
-        `);
+
 
         console.log('Database tables initialized successfully');
     } catch (error) {
