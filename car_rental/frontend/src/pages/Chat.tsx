@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import io, { Socket } from 'socket.io-client';
 import '../chat-styles.css';
 import { jwtDecode } from 'jwt-decode';
+import { FaPaperPlane, FaComments } from 'react-icons/fa';
 
 interface User {
     id: string;
@@ -34,13 +35,12 @@ const Chat = () => {
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (token) {
-            const decoded: any = jwtDecode(token);
-            setCurrentUser(decoded);
+            const localUser = JSON.parse(localStorage.getItem('user') || '{}');
+            setCurrentUser(localUser);
         }
     }, []);
 
     useEffect(() => {
-        // Scroll to the bottom of the message list whenever messages change
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
@@ -48,13 +48,10 @@ const Chat = () => {
         const token = localStorage.getItem('token');
         if (!token) return;
 
-        // Fetch users you can chat with
         const fetchUsers = async () => {
             try {
                 const response = await fetch('http://localhost:3000/api/chat/users', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (response.ok) {
                     const data = await response.json();
@@ -69,7 +66,6 @@ const Chat = () => {
 
         fetchUsers();
 
-        // Initialize socket connection
         socketRef.current = io('http://localhost:3000');
 
         socketRef.current.on('connect', () => {
@@ -81,13 +77,16 @@ const Chat = () => {
         });
 
         socketRef.current.on('receive_message', (message: Message) => {
-            setMessages(prevMessages => [...prevMessages, message]);
+            // Ensure we don't add duplicate messages
+            setMessages(prevMessages => 
+                prevMessages.find(m => m.id === message.id) ? prevMessages : [...prevMessages, message]
+            );
         });
 
         return () => {
             socketRef.current?.disconnect();
         };
-    }, []); // Runs only once on component mount
+    }, []);
 
     useEffect(() => {
         if (selectedUser && currentUser && socketRef.current) {
@@ -108,49 +107,76 @@ const Chat = () => {
             setNewMessage('');
         }
     };
+    
+    const renderAvatar = (user: User) => {
+        if (user.picture) {
+            return <img src={user.picture} alt={user.name} className="avatar" />;
+        }
+        return <div className="avatar">{user.name?.charAt(0).toUpperCase()}</div>;
+    };
 
     return (
         <div className="chat-container">
             <div className="chat-sidebar">
-                <h2>Conversations</h2>
-                {users.map(user => (
-                    <div key={user.id} className={`chat-user ${selectedUser?.id === user.id ? 'selected' : ''}`} onClick={() => setSelectedUser(user)}>
-                        <img src={user.picture} alt={user.name} className="user-avatar" />
-                        {user.name}
-                    </div>
-                ))}
+                <div className="chat-sidebar-header">
+                    Conversations
+                </div>
+                <div className="conversations-list">
+                    {users.map(user => (
+                        <div 
+                            key={user.id} 
+                            className={`conversation-item ${selectedUser?.id === user.id ? 'selected' : ''}`} 
+                            onClick={() => setSelectedUser(user)}
+                        >
+                            {renderAvatar(user)}
+                            <div className="conversation-details">
+                                <div className="conversation-name">{user.name}</div>
+                                <div className="conversation-email">{user.email}</div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
-            <div className="chat-main">
+            <main className="chat-main">
                 {selectedUser ? (
                     <>
-                        <div className="chat-header">
-                            <h3>{selectedUser.name}</h3>
-                        </div>
+                        <header className="chat-header">
+                            {renderAvatar(selectedUser)}
+                            <div className="chat-header-name">{selectedUser.name}</div>
+                        </header>
                         <div className="chat-messages">
-                            {messages.map(msg => (
-                                <div key={msg.id} className={`message ${msg.sender_id === currentUser?.id ? 'sent' : 'received'}`}>
-                                    <p>{msg.content}</p>
-                                    <span>{new Date(msg.timestamp).toLocaleTimeString()}</span>
+                            {messages.map((msg) => (
+                                <div key={msg.id} className={`message-bubble ${msg.sender_id === currentUser?.id ? 'sent' : 'received'}`}>
+                                    <div>
+                                        <div className="message-content">{msg.content}</div>
+                                        <div className="message-timestamp">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                                    </div>
                                 </div>
                             ))}
                             <div ref={messagesEndRef} />
                         </div>
-                        <form className="chat-form" onSubmit={handleSendMessage}>
-                            <input 
-                                type="text" 
-                                value={newMessage} 
-                                onChange={(e) => setNewMessage(e.target.value)} 
-                                placeholder="Type a message..." 
-                            />
-                            <button type="submit">Send</button>
-                        </form>
+                        <div className="chat-input-area">
+                            <form className="chat-input-form" onSubmit={handleSendMessage}>
+                                <input
+                                    type="text"
+                                    className="chat-input"
+                                    value={newMessage}
+                                    onChange={(e) => setNewMessage(e.target.value)}
+                                    placeholder="Type a message..."
+                                />
+                                <button type="submit" className="send-button">
+                                    <FaPaperPlane />
+                                </button>
+                            </form>
+                        </div>
                     </>
                 ) : (
-                    <div className="no-chat-selected">
+                    <div className="no-conversation-selected">
+                        <FaComments />
                         <p>Select a conversation to start chatting</p>
                     </div>
                 )}
-            </div>
+            </main>
         </div>
     );
 };
