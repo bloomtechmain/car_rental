@@ -1,0 +1,660 @@
+--
+-- PostgreSQL database dump
+--
+
+\restrict NbWBPkhOCgLMh92LVTF7Co3JyxfmjueoMddPhKNLZgd1ZqKcgclGa7ADLIRxUD5
+
+-- Dumped from database version 18.1
+-- Dumped by pg_dump version 18.1
+
+-- Started on 2026-02-21 11:59:21
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- TOC entry 2 (class 3079 OID 22672)
+-- Name: btree_gist; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS btree_gist WITH SCHEMA public;
+
+
+--
+-- TOC entry 5319 (class 0 OID 0)
+-- Dependencies: 2
+-- Name: EXTENSION btree_gist; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION btree_gist IS 'support for indexing common datatypes in GiST';
+
+
+--
+-- TOC entry 3 (class 3079 OID 23398)
+-- Name: pgcrypto; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
+
+
+--
+-- TOC entry 5320 (class 0 OID 0)
+-- Dependencies: 3
+-- Name: EXTENSION pgcrypto; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
+
+
+--
+-- TOC entry 253 (class 1255 OID 23436)
+-- Name: set_updated_at(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.set_updated_at() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION public.set_updated_at() OWNER TO postgres;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- TOC entry 221 (class 1259 OID 23437)
+-- Name: bookings; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.bookings (
+    id integer NOT NULL,
+    vehicle_id integer,
+    renter_id uuid,
+    start_date date NOT NULL,
+    end_date date NOT NULL,
+    total_price numeric(10,2) NOT NULL,
+    status character varying(20) DEFAULT 'pending'::character varying,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    booking_dates text
+);
+
+
+ALTER TABLE public.bookings OWNER TO postgres;
+
+--
+-- TOC entry 222 (class 1259 OID 23448)
+-- Name: bookings_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.bookings_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.bookings_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 5321 (class 0 OID 0)
+-- Dependencies: 222
+-- Name: bookings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.bookings_id_seq OWNED BY public.bookings.id;
+
+
+--
+-- TOC entry 223 (class 1259 OID 23449)
+-- Name: messages; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.messages (
+    id integer NOT NULL,
+    room character varying(255) NOT NULL,
+    sender_id uuid,
+    content text NOT NULL,
+    "timestamp" timestamp with time zone DEFAULT now(),
+    room_name character varying(255) NOT NULL
+);
+
+
+ALTER TABLE public.messages OWNER TO postgres;
+
+--
+-- TOC entry 224 (class 1259 OID 23459)
+-- Name: messages_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.messages_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.messages_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 5322 (class 0 OID 0)
+-- Dependencies: 224
+-- Name: messages_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.messages_id_seq OWNED BY public.messages.id;
+
+
+--
+-- TOC entry 231 (class 1259 OID 23592)
+-- Name: notifications; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.notifications (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid,
+    booking_id integer,
+    message text NOT NULL,
+    is_read boolean DEFAULT false,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+ALTER TABLE public.notifications OWNER TO postgres;
+
+--
+-- TOC entry 228 (class 1259 OID 23556)
+-- Name: pre_journey_checks; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.pre_journey_checks (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    booking_id integer,
+    mileage_before integer,
+    mileage_after integer,
+    notes_before text,
+    notes_after text,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+ALTER TABLE public.pre_journey_checks OWNER TO postgres;
+
+--
+-- TOC entry 225 (class 1259 OID 23460)
+-- Name: users; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.users (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    full_name character varying(150) NOT NULL,
+    email character varying(150) NOT NULL,
+    phone character varying(30),
+    country character varying(2),
+    identification_type character varying(30),
+    is_verified boolean DEFAULT false,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    deleted_at timestamp with time zone,
+    password_hash character varying(255),
+    auth_provider character varying(50) DEFAULT 'local'::character varying,
+    auth_provider_id character varying(255),
+    avatar_url text,
+    date_of_birth date,
+    gender character varying(20)
+);
+
+
+ALTER TABLE public.users OWNER TO postgres;
+
+--
+-- TOC entry 230 (class 1259 OID 23572)
+-- Name: vehicle_media; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.vehicle_media (
+    id integer NOT NULL,
+    vehicle_id integer,
+    media_type character varying(50),
+    purpose character varying(100),
+    file_url text,
+    uploaded_by uuid,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+ALTER TABLE public.vehicle_media OWNER TO postgres;
+
+--
+-- TOC entry 229 (class 1259 OID 23571)
+-- Name: vehicle_media_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.vehicle_media_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.vehicle_media_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 5323 (class 0 OID 0)
+-- Dependencies: 229
+-- Name: vehicle_media_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.vehicle_media_id_seq OWNED BY public.vehicle_media.id;
+
+
+--
+-- TOC entry 226 (class 1259 OID 23473)
+-- Name: vehicles; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.vehicles (
+    id integer NOT NULL,
+    owner_id uuid,
+    make character varying(100) NOT NULL,
+    model character varying(100) NOT NULL,
+    year integer NOT NULL,
+    license_plate character varying(50) NOT NULL,
+    price_per_day numeric(10,2) NOT NULL,
+    location character varying(255) NOT NULL,
+    image_url text,
+    description text,
+    is_available boolean DEFAULT true,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    list_availability text
+);
+
+
+ALTER TABLE public.vehicles OWNER TO postgres;
+
+--
+-- TOC entry 227 (class 1259 OID 23487)
+-- Name: vehicles_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.vehicles_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.vehicles_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 5324 (class 0 OID 0)
+-- Dependencies: 227
+-- Name: vehicles_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.vehicles_id_seq OWNED BY public.vehicles.id;
+
+
+--
+-- TOC entry 5110 (class 2604 OID 23488)
+-- Name: bookings id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.bookings ALTER COLUMN id SET DEFAULT nextval('public.bookings_id_seq'::regclass);
+
+
+--
+-- TOC entry 5113 (class 2604 OID 23489)
+-- Name: messages id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.messages ALTER COLUMN id SET DEFAULT nextval('public.messages_id_seq'::regclass);
+
+
+--
+-- TOC entry 5125 (class 2604 OID 23575)
+-- Name: vehicle_media id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.vehicle_media ALTER COLUMN id SET DEFAULT nextval('public.vehicle_media_id_seq'::regclass);
+
+
+--
+-- TOC entry 5120 (class 2604 OID 23490)
+-- Name: vehicles id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.vehicles ALTER COLUMN id SET DEFAULT nextval('public.vehicles_id_seq'::regclass);
+
+
+--
+-- TOC entry 5303 (class 0 OID 23437)
+-- Dependencies: 221
+-- Data for Name: bookings; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.bookings (id, vehicle_id, renter_id, start_date, end_date, total_price, status, created_at, booking_dates) FROM stdin;
+2	4	206da796-f095-4813-a648-16342f7d5451	2026-02-25	2026-02-25	25000.00	confirmed	2026-02-12 17:36:20.474066	\N
+1	4	b615004f-75b5-4f14-93bc-182c681020a0	2026-02-12	2026-02-13	50000.00	confirmed	2026-02-12 16:33:20.994668	\N
+5	6	206da796-f095-4813-a648-16342f7d5451	2026-02-18	2026-02-18	10000.00	completed	2026-02-16 13:11:38.23843	2026-02-18
+6	5	b615004f-75b5-4f14-93bc-182c681020a0	2026-02-13	2026-02-13	24000.00	completed	2026-02-16 13:27:27.318287	2026-02-13
+4	6	206da796-f095-4813-a648-16342f7d5451	2026-02-17	2026-02-17	10000.00	completed	2026-02-16 13:07:19.08289	2026-02-17
+3	6	206da796-f095-4813-a648-16342f7d5451	2026-02-16	2026-02-16	10000.00	completed	2026-02-16 13:06:59.628533	2026-02-16
+7	6	2edd9cbe-11f8-463e-ab75-18deb3775b2b	2026-02-19	2026-02-19	10000.00	pending	2026-02-19 21:32:20.743136	2026-02-19
+8	8	2edd9cbe-11f8-463e-ab75-18deb3775b2b	2026-02-20	2026-02-20	12000.00	confirmed	2026-02-19 23:07:24.946241	2026-02-20
+9	8	816735e9-5d28-4766-b24a-a796115b211d	2026-02-23	2026-02-24	24000.00	confirmed	2026-02-19 23:43:38.062658	2026-02-23,2026-02-24
+10	7	816735e9-5d28-4766-b24a-a796115b211d	2026-02-20	2026-02-20	10000.00	confirmed	2026-02-20 03:41:46.637217	2026-02-20
+\.
+
+
+--
+-- TOC entry 5305 (class 0 OID 23449)
+-- Dependencies: 223
+-- Data for Name: messages; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.messages (id, room, sender_id, content, "timestamp", room_name) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5313 (class 0 OID 23592)
+-- Dependencies: 231
+-- Data for Name: notifications; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.notifications (id, user_id, booking_id, message, is_read, created_at) FROM stdin;
+dbb8f299-7f0b-40a5-9dfa-7a73890970ae	2edd9cbe-11f8-463e-ab75-18deb3775b2b	10	Your vehicle has completed its journey.	f	2026-02-20 03:45:39.924288-08
+\.
+
+
+--
+-- TOC entry 5310 (class 0 OID 23556)
+-- Dependencies: 228
+-- Data for Name: pre_journey_checks; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.pre_journey_checks (id, booking_id, mileage_before, mileage_after, notes_before, notes_after, created_at) FROM stdin;
+65713be8-1029-48db-a346-1b0b644640c3	9	24999	26000			2026-02-20 00:43:52.458015-08
+8bbf0cde-7a4f-4c48-8c5e-3ef7ed23f759	9	24999	26000			2026-02-20 00:43:53.858297-08
+65346787-ec86-40b2-a157-0edde20c1279	9	25000	26000			2026-02-20 00:44:12.124009-08
+503411d8-11a5-4c17-91eb-c77eae085b48	9	25000	26000			2026-02-20 00:45:56.274079-08
+61a9b07e-3eb0-4be2-ade5-57c4d15e114e	10	25678	26675			2026-02-20 03:43:02.55638-08
+\.
+
+
+--
+-- TOC entry 5307 (class 0 OID 23460)
+-- Dependencies: 225
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.users (id, full_name, email, phone, country, identification_type, is_verified, created_at, updated_at, deleted_at, password_hash, auth_provider, auth_provider_id, avatar_url, date_of_birth, gender) FROM stdin;
+206da796-f095-4813-a648-16342f7d5451	Isuru Gunathilaka	isurugunathilaka1999@gmail.com	\N	\N	\N	t	2026-02-12 03:46:09.641074-08	2026-02-18 04:09:17.611514-08	\N	\N	google	103144729370250158845	https://lh3.googleusercontent.com/a/ACg8ocJ0QBE7YYcSw2mZlwFdgR0qs5UpRPot9NkJdFKX0WPz3wDqkQ=s96-c	\N	\N
+b615004f-75b5-4f14-93bc-182c681020a0	anuji jithmini	anujijithmini8@gmail.com	\N	\N	\N	t	2026-02-08 23:52:21.540074-08	2026-02-19 20:31:20.996764-08	\N	\N	google	101640912924602380505	https://lh3.googleusercontent.com/a/ACg8ocJI_yQ2N3j8N4vZvxnApNqD5NSq24iGTugGvhfaC-SRr_JsdA=s96-c	\N	\N
+816735e9-5d28-4766-b24a-a796115b211d	isuru gunathilaka	isurugunathilaka1@gmail.com	\N	\N	\N	t	2026-02-06 21:16:52.455749-08	2026-02-20 03:42:37.114515-08	\N	\N	google	106566519440439699962	https://lh3.googleusercontent.com/a/ACg8ocKnBjcAk1TptQ0LBPYJ_mPz1n60UJJcHpip1mcdEP6w2y2wqrUCHg=s96-c	\N	\N
+2edd9cbe-11f8-463e-ab75-18deb3775b2b	isuru gunathilaka	kiconyx@gmail.com	\N	\N	\N	t	2026-02-19 21:31:57.869256-08	2026-02-20 03:45:56.944703-08	\N	\N	google	117185965843803575021	https://lh3.googleusercontent.com/a/ACg8ocIS1LDu3Y9_FM6A8_m23F904-fv2ZLMurTDWJomlKZNXe1JL3U=s96-c	\N	\N
+\.
+
+
+--
+-- TOC entry 5312 (class 0 OID 23572)
+-- Dependencies: 230
+-- Data for Name: vehicle_media; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.vehicle_media (id, vehicle_id, media_type, purpose, file_url, uploaded_by, created_at) FROM stdin;
+1	8	image	pre-journey	/uploads/images-1771577156227.jpg	816735e9-5d28-4766-b24a-a796115b211d	2026-02-20 00:45:56.280109
+2	8	image	pre-journey	/uploads/images-1771577156234.png	816735e9-5d28-4766-b24a-a796115b211d	2026-02-20 00:45:56.318278
+4	\N	\N	post-journey	uploads/images-1771582132075.png	\N	2026-02-20 02:08:52.227185
+5	8	\N	post-journey	uploads/images-1771583147372.png	\N	2026-02-20 02:25:47.443364
+6	7	\N	pre-journey	uploads/images-1771587782504.png	\N	2026-02-20 03:43:02.576198
+7	7	\N	post-journey	uploads/images-1771587939753.jpg	\N	2026-02-20 03:45:39.924288
+\.
+
+
+--
+-- TOC entry 5308 (class 0 OID 23473)
+-- Dependencies: 226
+-- Data for Name: vehicles; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.vehicles (id, owner_id, make, model, year, license_plate, price_per_day, location, image_url, description, is_available, created_at, list_availability) FROM stdin;
+1	816735e9-5d28-4766-b24a-a796115b211d	Toyota	Corolla	2011	ABC-1234	10000.00	Padukka	/uploads/image-1770452692037-86359484.png		t	2026-02-07 13:54:52.135956	\N
+2	816735e9-5d28-4766-b24a-a796115b211d	Honda	Fit	2016	CAA-5678	7500.00	Padukka	/uploads/image-1770453126316-371060877.jpg		t	2026-02-07 14:02:06.394996	\N
+3	b615004f-75b5-4f14-93bc-182c681020a0	Toyota	C-HR	2020	CEB 1060	12000.00	kiribathgoda	/uploads/image-1770625587346-136142899.webp	anuji jithmini	t	2026-02-09 13:56:27.619546	\N
+4	b615004f-75b5-4f14-93bc-182c681020a0	BMW	M5	2025	CCC-5690	25000.00	kiribathgoda	/uploads/image-1770801767553-916774368.avif		t	2026-02-11 14:52:47.732869	2026-02-11, 2026-02-12, 2026-02-25
+5	206da796-f095-4813-a648-16342f7d5451	BMW	M3	2020	CBN-8725	24000.00	Malabe	/uploads/image-1770896916336-749195093.jpeg		t	2026-02-12 17:18:36.463216	2026-02-12, 2026-02-13
+6	b615004f-75b5-4f14-93bc-182c681020a0	Toyota	axio	2020	CBN-0987	10000.00	Colombo	/uploads/image-1771227290860-515452363.jpeg		t	2026-02-16 13:04:51.088426	2026-02-16, 2026-02-17, 2026-02-18, 2026-02-19
+7	2edd9cbe-11f8-463e-ab75-18deb3775b2b	Toyota	Corolla	2025	ABC-9875	10000.00	Maharagama	/uploads/image-1771565746272-104485581.jpg		t	2026-02-19 21:35:46.384914	2026-02-20, 2026-02-21, 2026-02-22, 2026-02-23, 2026-02-24, 2026-02-25, 2026-02-26
+8	2edd9cbe-11f8-463e-ab75-18deb3775b2b	Toyota	Corolla	2025	CBN-9453	12000.00	Maharagama	/uploads/image-1771565794426-66609955.png		t	2026-02-19 21:36:34.656223	2026-02-20, 2026-02-21, 2026-02-22, 2026-02-23, 2026-02-24, 2026-02-25, 2026-02-26
+\.
+
+
+--
+-- TOC entry 5325 (class 0 OID 0)
+-- Dependencies: 222
+-- Name: bookings_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.bookings_id_seq', 10, true);
+
+
+--
+-- TOC entry 5326 (class 0 OID 0)
+-- Dependencies: 224
+-- Name: messages_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.messages_id_seq', 12, true);
+
+
+--
+-- TOC entry 5327 (class 0 OID 0)
+-- Dependencies: 229
+-- Name: vehicle_media_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.vehicle_media_id_seq', 7, true);
+
+
+--
+-- TOC entry 5328 (class 0 OID 0)
+-- Dependencies: 227
+-- Name: vehicles_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.vehicles_id_seq', 8, true);
+
+
+--
+-- TOC entry 5131 (class 2606 OID 23492)
+-- Name: bookings bookings_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.bookings
+    ADD CONSTRAINT bookings_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5133 (class 2606 OID 23494)
+-- Name: messages messages_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.messages
+    ADD CONSTRAINT messages_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5145 (class 2606 OID 23603)
+-- Name: notifications notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5141 (class 2606 OID 23565)
+-- Name: pre_journey_checks pre_journey_checks_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.pre_journey_checks
+    ADD CONSTRAINT pre_journey_checks_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5135 (class 2606 OID 23496)
+-- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_email_key UNIQUE (email);
+
+
+--
+-- TOC entry 5137 (class 2606 OID 23498)
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5143 (class 2606 OID 23581)
+-- Name: vehicle_media vehicle_media_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.vehicle_media
+    ADD CONSTRAINT vehicle_media_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5139 (class 2606 OID 23500)
+-- Name: vehicles vehicles_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.vehicles
+    ADD CONSTRAINT vehicles_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5155 (class 2620 OID 23501)
+-- Name: users trg_users_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER trg_users_updated_at BEFORE UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+
+--
+-- TOC entry 5146 (class 2606 OID 23502)
+-- Name: bookings bookings_renter_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.bookings
+    ADD CONSTRAINT bookings_renter_id_fkey FOREIGN KEY (renter_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 5147 (class 2606 OID 23507)
+-- Name: bookings bookings_vehicle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.bookings
+    ADD CONSTRAINT bookings_vehicle_id_fkey FOREIGN KEY (vehicle_id) REFERENCES public.vehicles(id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 5148 (class 2606 OID 23512)
+-- Name: messages messages_sender_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.messages
+    ADD CONSTRAINT messages_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES public.users(id);
+
+
+--
+-- TOC entry 5153 (class 2606 OID 23609)
+-- Name: notifications notifications_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_booking_id_fkey FOREIGN KEY (booking_id) REFERENCES public.bookings(id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 5154 (class 2606 OID 23604)
+-- Name: notifications notifications_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 5150 (class 2606 OID 23566)
+-- Name: pre_journey_checks pre_journey_checks_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.pre_journey_checks
+    ADD CONSTRAINT pre_journey_checks_booking_id_fkey FOREIGN KEY (booking_id) REFERENCES public.bookings(id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 5151 (class 2606 OID 23587)
+-- Name: vehicle_media vehicle_media_uploaded_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.vehicle_media
+    ADD CONSTRAINT vehicle_media_uploaded_by_fkey FOREIGN KEY (uploaded_by) REFERENCES public.users(id) ON DELETE SET NULL;
+
+
+--
+-- TOC entry 5152 (class 2606 OID 23582)
+-- Name: vehicle_media vehicle_media_vehicle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.vehicle_media
+    ADD CONSTRAINT vehicle_media_vehicle_id_fkey FOREIGN KEY (vehicle_id) REFERENCES public.vehicles(id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 5149 (class 2606 OID 23517)
+-- Name: vehicles vehicles_owner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.vehicles
+    ADD CONSTRAINT vehicles_owner_id_fkey FOREIGN KEY (owner_id) REFERENCES public.users(id);
+
+
+-- Completed on 2026-02-21 11:59:23
+
+--
+-- PostgreSQL database dump complete
+--
+
+\unrestrict NbWBPkhOCgLMh92LVTF7Co3JyxfmjueoMddPhKNLZgd1ZqKcgclGa7ADLIRxUD5
+

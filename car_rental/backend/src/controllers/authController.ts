@@ -15,9 +15,13 @@ export const googleLogin = async (req: Request, res: Response) => {
         const userCheck = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
         
         if (userCheck.rows.length > 0) {
-            console.log('User found:', userCheck.rows[0].email);
-            // User exists, return user
-            return res.json(userCheck.rows[0]);
+            console.log('User found, updating profile:', userCheck.rows[0].email);
+            // User exists, update their name and picture, then return user
+            const updatedUser = await pool.query(
+                `UPDATE users SET full_name = $1, avatar_url = $2 WHERE email = $3 RETURNING *`,
+                [name, picture, email]
+            );
+            return res.json(updatedUser.rows[0]);
         } else {
             console.log('Creating new user:', email);
             // Create new user

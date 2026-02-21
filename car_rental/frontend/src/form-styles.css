@@ -482,8 +482,9 @@
     background: var(--input-bg);
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    padding: 1rem;
+    padding: 0.5rem;
     user-select: none;
+    max-width: 300px; /* Limit calendar width */
 }
 
 .calendar-header {

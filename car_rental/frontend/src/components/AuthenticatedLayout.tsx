@@ -10,7 +10,7 @@ import {
   FaCarSide,
   FaBars,
   FaTimes,
-  FaComments
+  FaBell
 } from 'react-icons/fa';
 
 interface AuthenticatedLayoutProps {
@@ -41,9 +41,9 @@ const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({ children }) =
     { icon: <FaThLarge />, label: 'Dashboard', path: '/dashboard' },
     { icon: <FaCar />, label: 'Rent a Vehicle', path: '/rent-vehicle' },
     { icon: <FaKey />, label: 'Hire Out Vehicle', path: '/hire-vehicle' },
-    { icon: <FaHistory />, label: 'My Rides', path: '/my-rides' },
     { icon: <FaClipboardList />, label: 'Hire Outs', path: '/hire-outs' },
-    { icon: <FaComments />, label: 'Chat', path: '/chat' },
+    { icon: <FaHistory />, label: 'My Rides', path: '/my-rides' },
+    { icon: <FaBell />, label: 'Notifications', path: '/notifications' },
   ];
 
   return (
@@ -80,7 +80,7 @@ const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({ children }) =
         {/* User Profile Card */}
         <div className="user-profile-card">
           <img 
-            src={user?.avatar_url || user?.picture || "https://ui-avatars.com/api/?name=User&background=FFD700&color=000"} 
+            src={user?.avatar_url || "https://ui-avatars.com/api/?name=User&background=FFD700&color=000"} 
             alt="Profile" 
             className="user-avatar" 
           />

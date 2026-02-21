@@ -75,6 +75,42 @@ export const initDB = async () => {
             );
         `);
 
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS pre_journey_checks (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                booking_id INTEGER REFERENCES bookings(id) ON DELETE CASCADE,
+                mileage_before INT,
+                mileage_after INT,
+                notes_before TEXT,
+                notes_after TEXT,
+                created_at TIMESTAMPTZ DEFAULT now()
+            );
+        `);
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS vehicle_media (
+                id SERIAL PRIMARY KEY,
+                vehicle_id INTEGER REFERENCES vehicles(id) ON DELETE CASCADE,
+                pre_journey_check_id UUID REFERENCES pre_journey_checks(id) ON DELETE CASCADE,
+                media_type VARCHAR(50),
+                purpose VARCHAR(100),
+                file_url TEXT,
+                uploaded_by ${fkType} REFERENCES users(id) ON DELETE SET NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS notifications (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                user_id ${fkType} REFERENCES users(id) ON DELETE CASCADE,
+                booking_id INTEGER REFERENCES bookings(id) ON DELETE CASCADE,
+                message TEXT NOT NULL,
+                is_read BOOLEAN DEFAULT FALSE,
+                created_at TIMESTAMPTZ DEFAULT NOW()
+            );
+        `);
+
 
 
         console.log('Database tables initialized successfully');

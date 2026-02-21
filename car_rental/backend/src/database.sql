@@ -107,3 +107,13 @@ CREATE TABLE bookings (
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
 );
+
+CREATE TABLE pre_journey_checks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    booking_id UUID REFERENCES bookings(id) ON DELETE CASCADE,
+    mileage_before INT,
+    mileage_after INT,
+    notes_before TEXT,
+    notes_after TEXT,
+    created_at TIMESTAMPTZ DEFAULT now()
+);

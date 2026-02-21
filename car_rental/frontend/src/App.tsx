@@ -7,7 +7,8 @@ import Dashboard from './pages/Dashboard';
 import HireVehicle from './pages/HireVehicle';
 import RentVehicle from './pages/RentVehicle';
 import HireOuts from './pages/HireOuts';
-import Chat from './pages/Chat';
+import MyRides from './pages/MyRides';
+import Notifications from './pages/Notifications';
 
 // Simple Protected Route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -53,10 +54,18 @@ function App() {
           } 
         />
         <Route 
-          path="/chat" 
+          path="/my-rides" 
           element={
             <ProtectedRoute>
-              <Chat />
+              <MyRides />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/notifications" 
+          element={
+            <ProtectedRoute>
+              <Notifications />
             </ProtectedRoute>
           } 
         />

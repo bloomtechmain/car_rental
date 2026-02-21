@@ -33,6 +33,7 @@ const Login = () => {
         }
 
         const data = await res.json();
+        console.log('Backend Response:', data); // <-- ADDING THIS LOG
         
         console.log('Login successful, navigating...');
         localStorage.setItem('token', credentialResponse.credential);

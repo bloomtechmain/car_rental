@@ -100,7 +100,7 @@ const BookingModal = ({ vehicle, onClose, onSuccess }: BookingModalProps) => {
           <div className="form-group">
             <label>Select Dates</label>
             {availableDates.length > 0 ? (
-                <div className="dates-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '0.5rem', maxHeight: '200px', overflowY: 'auto', padding: '0.5rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
+                <div className="dates-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(60px, 1fr))', gap: '0.25rem', maxHeight: '120px', overflowY: 'auto', padding: '0.25rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
                     {availableDates.map(date => (
                         <button
                             key={date}

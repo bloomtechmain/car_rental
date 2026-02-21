@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { createBooking, getBookingsByRenter, getHireOutsByOwner, updateBookingStatus } from '../controllers/bookingController.js';
+import { createPreJourneyCheck } from '../controllers/preJourneyCheckController.js';
+import upload from '../middleware/multer.js';
 
 const router = Router();
 
